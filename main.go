@@ -17,7 +17,7 @@ func runDaemon(config config.Config) {
 		os.Exit(1)
 	}
 
-	const LOCKFILE = "/tmp/windigod.lock"
+	const LOCKFILE = "/var/lock/windigod.lock"
 
 	if _, err := os.Stat(LOCKFILE); err == nil {
 		fmt.Println("windigod is already running")
