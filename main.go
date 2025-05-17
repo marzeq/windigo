@@ -17,14 +17,37 @@ func runDaemon(config config.Config) {
 		os.Exit(1)
 	}
 
+	const LOCKFILE = "/tmp/windigod.lock"
+
+	if _, err := os.Stat(LOCKFILE); err == nil {
+		fmt.Println("windigod is already running")
+		os.Exit(1)
+	} else if os.IsNotExist(err) {
+		if err := os.WriteFile(LOCKFILE, []byte(""), 0644); err != nil {
+			fmt.Println("Error creating lock file:", err)
+			os.Exit(1)
+		}
+	} else {
+		fmt.Println("Error accessing lock file:", err)
+		os.Exit(1)
+	}
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill)
 	go func() {
 		<-c
+		if err := os.Remove(LOCKFILE); err != nil {
+			fmt.Println("Error removing lock file:", err)
+			os.Exit(1)
+		}
 		os.Exit(0)
 	}()
 
 	daemon.Main(config)
+	if err := os.Remove(LOCKFILE); err != nil {
+		fmt.Println("Error removing lock file:", err)
+		os.Exit(1)
+	}
 }
 
 func runCli(config config.Config) {
@@ -48,7 +71,7 @@ func runCli(config config.Config) {
 	}
 }
 
-const VERSION = "0.1.0"
+const VERSION = "0.1.1"
 
 func main() {
 	execName := filepath.Base(os.Args[0])

@@ -12,7 +12,7 @@
 
 ### Using your package manager
 
-- None for now :(
+- Arch Linux: [from the AUR](https://aur.archlinux.org/packages/windigo)
 
 ### With `just install`
 
