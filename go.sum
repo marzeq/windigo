@@ -1,0 +1,15 @@
+github.com/alexflint/go-arg v1.5.1 h1:nBuWUCpuRy0snAG+uIJ6N0UvYxpxA0/ghA/AaHxlT8Y=
+github.com/alexflint/go-arg v1.5.1/go.mod h1:A7vTJzvjoaSTypg4biM5uYNTkJ27SkNTArtYXnlqVO8=
+github.com/alexflint/go-scalar v1.2.0 h1:WR7JPKkeNpnYIOfHRa7ivM21aWAdHD0gEWHCx+WQBRw=
+github.com/alexflint/go-scalar v1.2.0/go.mod h1:LoFvNMqS1CPrMVltza4LvnGKhaSpc3oyLEBUZVhhS2o=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/marzeq/mconf v1.2505.1 h1:BArSug+BcYqfFDdJasDL92VCwUw1tUs5Fh3nb/Fzg/g=
+github.com/marzeq/mconf v1.2505.1/go.mod h1:nJKg15RS0Hfjbs/7k+T644FHIOIvfMJFVieGUnp6sc0=
+github.com/marzeq/mconf v1.2505.2 h1:1OYstXGTHVD6lK+Dvu7HWFAd1npbwybvn1Ei/jgZ58I=
+github.com/marzeq/mconf v1.2505.2/go.mod h1:nJKg15RS0Hfjbs/7k+T644FHIOIvfMJFVieGUnp6sc0=
+github.com/marzeq/mconf v1.2505.3 h1:2+fckEUD9e+GenCzl+725QT0H6CqZhO9/SlLKKy6imE=
+github.com/marzeq/mconf v1.2505.3/go.mod h1:nJKg15RS0Hfjbs/7k+T644FHIOIvfMJFVieGUnp6sc0=
+github.com/marzeq/mconf v1.2505.4 h1:1itCK0mbmCxKbAG4ktFj0zXWKzhhVyT4kcN+SYf+wlQ=
+github.com/marzeq/mconf v1.2505.4/go.mod h1:nJKg15RS0Hfjbs/7k+T644FHIOIvfMJFVieGUnp6sc0=
+github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
