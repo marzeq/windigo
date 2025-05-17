@@ -48,6 +48,8 @@ func runCli(config config.Config) {
 	}
 }
 
+const VERSION = "0.1.0"
+
 func main() {
 	execName := filepath.Base(os.Args[0])
 
@@ -68,13 +70,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	var args struct {
-		Daemon bool `arg:"-d,--daemon" help:"run as daemon"`
+		Daemon  bool `arg:"-d,--daemon" help:"run as daemon"`
+		Version bool `arg:"-v,--version" help:"print version and exit"`
 	}
 
 	arg.MustParse(&args)
 
-	if execName == "windigod" {
+	if args.Version {
+		fmt.Printf("windigo version %s\n", VERSION)
+		return
+	}
+
+	if execName == "windigod" || execName == "windigo-daemon" {
 		runDaemon(config)
 		return
 	}

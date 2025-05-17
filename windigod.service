@@ -1,0 +1,10 @@
+[Unit]
+Description=Windigod Daemon
+
+[Service]
+Type=simple
+ExecStart=windigod
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

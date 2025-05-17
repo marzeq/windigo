@@ -8,8 +8,6 @@ import (
 )
 
 func Main(config config.Config) {
-	log.SetFlags(log.LstdFlags)
-	log.SetPrefix("[windigo daemon] ")
 	log.Println("Starting windigo daemon")
 
 	fatal := false
