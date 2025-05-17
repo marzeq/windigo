@@ -72,7 +72,7 @@ func runCli(config config.Config) {
 	}
 }
 
-const VERSION = "0.1.1"
+const VERSION = "0.1.2"
 
 func main() {
 	execName := filepath.Base(os.Args[0])
