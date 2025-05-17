@@ -95,6 +95,11 @@ func main() {
 		panic(err)
 	}
 
+	if execName == "windigod" || execName == "windigo-daemon" {
+		runDaemon(config)
+		return
+	}
+
 	var args struct {
 		Daemon  bool `arg:"-d,--daemon" help:"run as daemon"`
 		Version bool `arg:"-v,--version" help:"print version and exit"`
@@ -104,11 +109,6 @@ func main() {
 
 	if args.Version {
 		fmt.Printf("windigo version %s\n", VERSION)
-		return
-	}
-
-	if execName == "windigod" || execName == "windigo-daemon" {
-		runDaemon(config)
 		return
 	}
 
