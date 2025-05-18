@@ -10,12 +10,12 @@
 
 ## Installation
 
-### Using your package manager
+### Precompiled
 
-- Arch Linux: [from the AUR](https://aur.archlinux.org/packages/windigo) *OR* manually installing from [releases](https://github.com/marzeq/windigo/releases/latest) with `pacman -U`
-- Debian/Ubuntu: Install the `.deb` file from [releases](https://github.com/marzeq/windigo/releases/latest)
+- Arch Linux: [from the AUR](https://aur.archlinux.org/packages/windigo) *OR* manually installing from the [releases page](https://github.com/marzeq/windigo/releases/latest) with `pacman -U`
+- Other: Get the tarball from the [releases page](https://github.com/marzeq/windigo/releases/latest) package
 
-### With `just install`
+### From source - with `just install`
 
 1. Clone the repository
 
@@ -32,7 +32,7 @@ just install
 just uninstall
 ```
 
-### Manually
+### From source - manually
 
 1. Clone the repository
 
@@ -45,7 +45,7 @@ cd windigo
 
 ```bash
 go build . -o windigo
-ln -sf windigo windigod
+ln -s windigo windigod
 ```
 
 3. Install binaries and service file
