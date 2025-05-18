@@ -32,19 +32,18 @@ func Main(config config.Config) {
 				continue
 			}
 
-			sensor := config.Sensors[curve.Sensor]
-			temp, err := sensor.ReadTemperature()
+			temp, err := curve.GetAggregateTemp(config.Sensors)
 			if err != nil {
-				log.Printf("Error reading temperature from sensor '%s': %v", curve.Sensor, err)
+				log.Printf("%v", err)
 				continue
 			}
 
 			if curve.PreviousTemp != 0 && abs(temp-curve.PreviousTemp) < curve.Hysteresis {
 				continue
 			}
-			percent, ok := curve.GetPoint(temp)
+			percent, ok := curve.GetPointFromTemp(temp)
 			if !ok {
-				log.Printf("Error getting point from curve '%s': %v", curveName, err)
+				log.Printf("Error getting point from curve '%s'", curveName)
 				continue
 			}
 			curve.PreviousTemp = temp

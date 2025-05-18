@@ -14,13 +14,16 @@ import (
 
 const VERSION = "0.1.2"
 
+const (
+	DEFAULT_CONFIG = "/etc/windigo/config.conf"
+	LOCKFILE       = "/var/lock/windigod.lock"
+)
+
 func runDaemon(config config.Config) {
 	if os.Geteuid() != 0 {
 		fmt.Println("windogod must be run as root")
 		os.Exit(1)
 	}
-
-	const LOCKFILE = "/var/lock/windigod.lock"
 
 	if _, err := os.Stat(LOCKFILE); err == nil {
 		fmt.Println("windigod is already running")
@@ -45,6 +48,10 @@ func runDaemon(config config.Config) {
 		}
 		os.Exit(0)
 	}()
+
+	if config.Path != DEFAULT_CONFIG {
+		fmt.Println("Using custom config file:", config.Path)
+	}
 
 	daemon.Main(config)
 	if err := os.Remove(LOCKFILE); err != nil {
@@ -74,12 +81,11 @@ func runCli(config config.Config) {
 			continue
 		}
 		curve := config.Curves[fan.Curve]
-		sensor := config.Sensors[curve.Sensor]
-		temp, err := sensor.ReadTemperature()
+		temp, err := curve.GetAggregateTemp(config.Sensors)
 		if err != nil {
 			fmt.Printf("%s\t%d RPM\n", fan.Name, speed)
 		} else {
-			percent, ok := curve.GetPoint(temp)
+			percent, ok := curve.GetPointFromTemp(temp)
 			if !ok {
 				fmt.Printf("%s\t%d RPM\n", fan.Name, speed)
 			} else {
@@ -92,42 +98,38 @@ func runCli(config config.Config) {
 func main() {
 	execName := filepath.Base(os.Args[0])
 
-	if _, err := os.Stat("/etc/windigo/config.conf"); err != nil {
-		if os.IsNotExist(err) {
-			fmt.Println("Config file /etc/windigo/config.conf does not exist")
-			os.Exit(1)
-		}
-		if os.IsPermission(err) {
-			fmt.Println("Permission denied to access /etc/windigo/config.conf")
-			os.Exit(1)
-		}
-		fmt.Println("Error accessing /etc/windigo/config.conf:", err)
-		os.Exit(1)
-	}
-
-	config, err := config.ReadConfig("/etc/windigo/config.conf")
-	if err != nil {
-		panic(err)
-	}
-
-	if execName == "windigod" || execName == "windigo-daemon" {
-		runDaemon(config)
-		return
-	}
-
 	var args struct {
-		Daemon  bool `arg:"-d,--daemon" help:"run as daemon"`
-		Version bool `arg:"-v,--version" help:"print version and exit"`
+		Daemon     bool   `arg:"-d,--daemon" help:"run as daemon"`
+		ConfigFile string `arg:"-c,--config" help:"path to config file" default:"/etc/windigo/config.conf"`
+		Version    bool   `arg:"-v,--version" help:"print version and exit"`
 	}
 
 	arg.MustParse(&args)
+
+	if _, err := os.Stat(args.ConfigFile); err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("Config file not found:", args.ConfigFile)
+			os.Exit(1)
+		}
+		if os.IsPermission(err) {
+			fmt.Println("Permission denied to access config file:", args.ConfigFile)
+			os.Exit(1)
+		}
+		fmt.Println("Error accessing config file:", err)
+		os.Exit(1)
+	}
+
+	config, err := config.ReadConfig(args.ConfigFile)
+	if err != nil {
+		panic(err)
+	}
 
 	if args.Version {
 		fmt.Printf("windigo version %s\n", VERSION)
 		return
 	}
 
-	if args.Daemon {
+	if execName == "windigod" || execName == "windigo-daemon" || args.Daemon {
 		runDaemon(config)
 		return
 	} else {

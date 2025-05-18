@@ -18,6 +18,7 @@ type Config = struct {
 	Sensors sensor.Sensors
 	Curves  curve.Curves
 	Fans    fan.Fans
+	Path    string
 }
 
 func ReadConfig(configFile string) (Config, error) {
@@ -51,5 +52,6 @@ func ReadConfig(configFile string) (Config, error) {
 		Sensors: sensors,
 		Curves:  curves,
 		Fans:    fans,
+		Path:    configFile,
 	}, nil
 }

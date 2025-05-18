@@ -39,23 +39,72 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 		}
 		isStep := typeVal == "step"
 
+		curveSensors := []string{}
+
+		processSensor := func(sensorGot mconf_values.MconfValue) error {
+			sensorVal, ok := mconf_values.MconfUnwrapString(sensorGot)
+			if !ok {
+				return fmt.Errorf("curve '%s' 'sensor' must be a string", name)
+			}
+			sensorKey := ""
+			for k := range sensors {
+				if k == sensorVal {
+					sensorKey = k
+					break
+				}
+			}
+			if sensorKey == "" {
+				return fmt.Errorf("curve '%s' 'sensor' must be a valid sensor", name)
+			}
+			curveSensors = append(curveSensors, sensorKey)
+			return nil
+		}
+
 		sensorGot, ok := curveVal["sensor"]
-		if !ok {
-			return nil, fmt.Errorf("curve '%s' must have 'sensor' attribute", name)
-		}
-		sensorVal, ok := mconf_values.MconfUnwrapString(sensorGot)
-		if !ok {
-			return nil, fmt.Errorf("curve '%s' 'sensor' must be a string", name)
-		}
-		sensorKey := ""
-		for k := range sensors {
-			if k == sensorVal {
-				sensorKey = k
-				break
+		if ok {
+			if err := processSensor(sensorGot); err != nil {
+				return nil, err
+			}
+		} else {
+			sensorsGot, ok := curveVal["sensors"]
+			if !ok {
+				return nil, fmt.Errorf("curve '%s' must have 'sensor' or 'sensors' attribute", name)
+			}
+			sensorsVal, ok := mconf_values.MconfUnwrapList(sensorsGot)
+			if !ok {
+				return nil, fmt.Errorf("curve '%s' 'sensors' must be a list", name)
+			}
+			for _, sensorGot := range sensorsVal {
+				if err := processSensor(sensorGot); err != nil {
+					return nil, err
+				}
 			}
 		}
-		if sensorKey == "" {
-			return nil, fmt.Errorf("curve '%s' 'sensor' must be a valid sensor", name)
+
+		if len(curveSensors) == 0 {
+			return nil, fmt.Errorf("curve '%s' must have 'sensor' or 'sensors' attribute", name)
+		}
+
+		aggreggate := "avg"
+		aggregateGot, ok := curveVal["aggregate"]
+		if ok {
+			aggregateVal, ok := mconf_values.MconfUnwrapString(aggregateGot)
+			if !ok {
+				return nil, fmt.Errorf("curve '%s' 'aggregate' must be a string", name)
+			}
+			if aggregateVal != "avg" && aggregateVal != "max" && aggregateVal != "min" {
+				return nil, fmt.Errorf("curve '%s' 'aggregate' must be 'avg', 'max' or 'min'", name)
+			}
+			aggreggate = aggregateVal
+		}
+		var aggregateFunc curve.AggregateFunc
+		switch aggreggate {
+		case "avg":
+			aggregateFunc = curve.AggregateAvg
+		case "max":
+			aggregateFunc = curve.AggregateMax
+		case "min":
+			aggregateFunc = curve.AggregateMin
 		}
 
 		pointsGot, ok := curveVal["points"]
@@ -155,11 +204,12 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 		}
 
 		curves[name] = &curve.Curve{
-			IsStep:     isStep,
-			Sensor:     sensorKey,
-			Points:     points,
-			Hysteresis: hysteresis,
-			Period:     period,
+			IsStep:        isStep,
+			Sensors:       curveSensors,
+			AggregateFunc: aggregateFunc,
+			Points:        points,
+			Hysteresis:    hysteresis,
+			Period:        period,
 		}
 	}
 

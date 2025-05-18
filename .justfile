@@ -12,11 +12,11 @@ build:
 build-daemon: build
   ln -sf {{binname}} {{builddir}}/{{daemonname}}
 
-run: build
-  {{builddir}}/{{binname}}
+run *ARGS: build
+  {{builddir}}/{{binname}} {{ARGS}}
 
-run-daemon: build-daemon
-  sudo ./{{builddir}}/{{daemonname}}
+run-daemon *ARGS: build-daemon
+  sudo ./{{builddir}}/{{daemonname}} {{ARGS}}
 
 install: build build-daemon
   sudo install -Dm755 {{builddir}}/{{binname}} /usr/local/bin/{{binname}}
