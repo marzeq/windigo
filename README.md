@@ -12,7 +12,8 @@
 
 ### Using your package manager
 
-- Arch Linux: [from the AUR](https://aur.archlinux.org/packages/windigo)
+- Arch Linux: [from the AUR](https://aur.archlinux.org/packages/windigo) *OR* manually installing from [releases](https://github.com/marzeq/windigo/releases/latest) with `pacman -U`
+- Debian/Ubuntu: Install the `.deb` file from [releases](https://github.com/marzeq/windigo/releases/latest)
 
 ### With `just install`
 
