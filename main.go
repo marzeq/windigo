@@ -12,6 +12,8 @@ import (
 	"github.com/marzeq/windigo/daemon"
 )
 
+const VERSION = "0.1.2"
+
 func runDaemon(config config.Config) {
 	if os.Geteuid() != 0 {
 		fmt.Println("windogod must be run as root")
@@ -68,11 +70,21 @@ func runCli(config config.Config) {
 			fmt.Printf("Error reading fan speed: %s\n", err.Error())
 			continue
 		}
-		fmt.Printf("%s\t%d RPM\n", fan.Name, speed)
+		curve := config.Curves[fan.Curve]
+		sensor := config.Sensors[curve.Sensor]
+		temp, err := sensor.ReadTemperature()
+		if err != nil {
+			fmt.Printf("%s\t%d RPM\n", fan.Name, speed)
+		} else {
+			percent, ok := curve.GetPoint(temp)
+			if !ok {
+				fmt.Printf("%s\t%d RPM\n", fan.Name, speed)
+			} else {
+				fmt.Printf("%s\t%d RPM (%.0f%%)\n", fan.Name, speed, percent)
+			}
+		}
 	}
 }
-
-const VERSION = "0.1.2"
 
 func main() {
 	execName := filepath.Base(os.Args[0])
