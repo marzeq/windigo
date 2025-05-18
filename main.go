@@ -54,6 +54,9 @@ func runDaemon(config config.Config) {
 }
 
 func runCli(config config.Config) {
+	fmt.Println("windigo version", VERSION)
+	fmt.Println()
+
 	for _, sensor := range config.Sensors {
 		temp, err := sensor.ReadTemperature()
 		if err != nil {
