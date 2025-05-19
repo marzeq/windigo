@@ -70,7 +70,12 @@ func runCli(config config.Config) {
 			fmt.Printf("Error reading temperature: %s\n", err.Error())
 			continue
 		}
-		fmt.Printf("%s\t%.1f °C\n", sensor.Name, temp)
+		realTemp, err := sensor.ReadRealTemperature()
+		if realTemp != temp && err == nil {
+			fmt.Printf("%s\t%.1f °C (%.1f °C)\n", sensor.Name, temp, realTemp)
+		} else {
+			fmt.Printf("%s\t%.1f °C\n", sensor.Name, temp)
+		}
 	}
 	fmt.Println()
 
