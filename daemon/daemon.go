@@ -103,7 +103,7 @@ func RunDaemon(confFile string) int {
 	}()
 
 	if cfg.Path != common.DEFAULT_CONFIG {
-		fmt.Println("Using custom config file:", cfg.Path)
+		log.Println("Using custom config file:", cfg.Path)
 	}
 
 	log.Println("Starting windigo daemon")

@@ -148,6 +148,10 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 				return nil, fmt.Errorf("curve '%s' 'points' must be >= 0", name)
 			}
 
+			if temp < points[i-1].Temp {
+				return nil, fmt.Errorf("curve '%s' 'points' must be in ascending order", name)
+			}
+
 			percentVal, ok := mconf_values.MconfUnwrapFloat(percentGot)
 			percent := 0.0
 			if !ok {
