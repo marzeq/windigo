@@ -60,25 +60,79 @@ func runDaemon(config config.Config) {
 	}
 }
 
+func sum(arr []int) int {
+	sum := 0
+	for _, v := range arr {
+		sum += v
+	}
+	return sum
+}
+
+func printTable(headers []string, data [][]string) {
+	if len(data) == 0 {
+		return
+	}
+	for i := range data {
+		if len(headers) != len(data[i]) {
+			fmt.Println("Error: headers and data length mismatch")
+			return
+		}
+	}
+
+	maxLengths := make([]int, len(headers))
+	for i := range headers {
+		maxLengths[i] = len(headers[i])
+		for j := range data {
+			if len(data[j]) > i {
+				if len(data[j][i]) > maxLengths[i] {
+					maxLengths[i] = len(data[j][i])
+				}
+			}
+		}
+	}
+
+	for i := range headers {
+		fmt.Printf("%-*s ", maxLengths[i], headers[i])
+		if i < len(headers)-1 {
+			fmt.Print("| ")
+		}
+	}
+	fmt.Println()
+	for range sum(maxLengths) + (len(headers)-1)*3 {
+		fmt.Print("-")
+	}
+	fmt.Println()
+	for _, row := range data {
+		for i := range row {
+			fmt.Printf("%-*s ", maxLengths[i], row[i])
+			if i < len(row)-1 {
+				fmt.Print("| ")
+			}
+		}
+		fmt.Println()
+	}
+	fmt.Println()
+}
+
 func runCli(config config.Config) {
 	fmt.Println("windigo version", VERSION)
 	fmt.Println()
 
+	headers := []string{"Sensor", "Temp", "Offset Temp"}
+	data := make([][]string, 0)
 	for _, sensor := range config.Sensors {
 		temp, err := sensor.ReadTemperature()
 		if err != nil {
 			fmt.Printf("Error reading temperature: %s\n", err.Error())
 			continue
 		}
-		realTemp, err := sensor.ReadRealTemperature()
-		if realTemp != temp && err == nil {
-			fmt.Printf("%s\t%.1f °C (%.1f °C)\n", sensor.Name, temp, realTemp)
-		} else {
-			fmt.Printf("%s\t%.1f °C\n", sensor.Name, temp)
-		}
+		realTemp, _ := sensor.ReadRealTemperature()
+		data = append(data, []string{sensor.Name, fmt.Sprintf("%.1f °C", realTemp), fmt.Sprintf("%.1f °C", temp)})
 	}
-	fmt.Println()
+	printTable(headers, data)
 
+	headers = []string{"Fan", "RPM", "%"}
+	data = make([][]string, 0)
 	for _, fan := range config.Fans {
 		speed, err := fan.ReadSpeed()
 		if err != nil {
@@ -88,16 +142,17 @@ func runCli(config config.Config) {
 		curve := config.Curves[fan.Curve]
 		temp, err := curve.GetAggregateTemp(config.Sensors)
 		if err != nil {
-			fmt.Printf("%s\t%d RPM\n", fan.Name, speed)
+			data = append(data, []string{fan.Name, fmt.Sprintf("%d", speed), "N/A"})
 		} else {
 			percent, ok := curve.GetPointFromTemp(temp)
 			if !ok {
-				fmt.Printf("%s\t%d RPM\n", fan.Name, speed)
+				data = append(data, []string{fan.Name, fmt.Sprintf("%d", speed), "N/A"})
 			} else {
-				fmt.Printf("%s\t%d RPM (%.0f%%)\n", fan.Name, speed, percent)
+				data = append(data, []string{fan.Name, fmt.Sprintf("%d", speed), fmt.Sprintf("%.0f%%", percent)})
 			}
 		}
 	}
+	printTable(headers, data)
 }
 
 func main() {
