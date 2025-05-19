@@ -12,7 +12,7 @@ import (
 	"github.com/marzeq/windigo/daemon"
 )
 
-const VERSION = "0.1.3"
+const VERSION = "0.1.4"
 
 const (
 	DEFAULT_CONFIG = "/etc/windigo/config.conf"
