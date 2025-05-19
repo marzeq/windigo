@@ -6,8 +6,15 @@ import (
 	"github.com/marzeq/windigo/sensor"
 )
 
+type CurveType uint
+
+const (
+	CurveTypeStep CurveType = iota
+	CurveTypeLinear
+)
+
 type Curve struct {
-	IsStep          bool
+	Type            CurveType
 	Sensors         []string // sensor names
 	AggregateFunc   AggregateFunc
 	Points          []CurvePoint
@@ -64,23 +71,21 @@ var AggregateMin AggregateFunc = func(readings []float64) float64 {
 }
 
 func (c Curve) GetPointFromTemp(temp float64) (float64, bool) {
-	if c.IsStep {
+	if c.Type == CurveTypeStep {
 		for i := range c.Points {
 			if temp >= c.Points[i].Temp && (i == len(c.Points)-1 || temp <= c.Points[i+1].Temp) {
 				return c.Points[i].Percent, true
 			}
 		}
-
-		return 0, false
-	}
-
-	for i := range len(c.Points) - 1 {
-		if c.Points[i].Temp <= temp && c.Points[i+1].Temp >= temp {
-			return interpolate(c.Points[i], c.Points[i+1], temp), true
+	} else if c.Type == CurveTypeLinear {
+		for i := range len(c.Points) - 1 {
+			if c.Points[i].Temp <= temp && c.Points[i+1].Temp >= temp {
+				return interpolate(c.Points[i], c.Points[i+1], temp), true
+			}
 		}
 	}
 
-	return 0, false
+	return c.Points[0].Percent, false
 }
 
 func (c Curve) GetAggregateTemp(sensors sensor.Sensors) (float64, error) {

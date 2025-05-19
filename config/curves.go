@@ -34,10 +34,15 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 		if !ok {
 			return nil, fmt.Errorf("curve '%s' 'type' must be a string", name)
 		}
-		if typeVal != "step" && typeVal != "linear" {
+		var curveType curve.CurveType
+		switch typeVal {
+		case "step":
+			curveType = curve.CurveTypeStep
+		case "linear":
+			curveType = curve.CurveTypeLinear
+		default:
 			return nil, fmt.Errorf("curve '%s' 'type' must be 'step' or 'linear'", name)
 		}
-		isStep := typeVal == "step"
 
 		curveSensors := []string{}
 
@@ -208,7 +213,7 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 		}
 
 		curves[name] = &curve.Curve{
-			IsStep:        isStep,
+			Type:          curveType,
 			Sensors:       curveSensors,
 			AggregateFunc: aggregateFunc,
 			Points:        points,
