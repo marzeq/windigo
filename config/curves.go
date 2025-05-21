@@ -14,28 +14,27 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 		return nil, fmt.Errorf("section 'curves' not found")
 	}
 
-	curvesVal, ok := mconf_values.MconfUnwrapObject(curvesGot)
+	curvesVal, ok := mconf_values.UnwrapObject(curvesGot)
 	if !ok {
 		return nil, fmt.Errorf("section 'curves' must be an object")
 	}
 	curves := make(curve.Curves)
 
 	for name, cur := range curvesVal {
-		curveVal, ok := mconf_values.MconfUnwrapObject(cur)
+		curveVal, ok := mconf_values.UnwrapObject(cur)
 		if !ok {
 			return nil, fmt.Errorf("curve '%s' must be an object", name)
 		}
-		typeGot, ok := curveVal["type"]
-		if !ok {
-			return nil, fmt.Errorf("curve '%s' must have 'type' attribute", name)
-		}
 
-		typeVal, ok := mconf_values.MconfUnwrapString(typeGot)
-		if !ok {
+		tpe, exists, okType := mconf_values.ObjGetString(curveVal, "type")
+		if !exists {
+			return nil, fmt.Errorf("curve '%s' must have 'type' attribute", name)
+		} else if !okType {
 			return nil, fmt.Errorf("curve '%s' 'type' must be a string", name)
 		}
+
 		var curveType curve.CurveType
-		switch typeVal {
+		switch tpe {
 		case "step":
 			curveType = curve.CurveTypeStep
 		case "linear":
@@ -47,7 +46,7 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 		curveSensors := []string{}
 
 		processSensor := func(sensorGot mconf_values.MconfValue) error {
-			sensorVal, ok := mconf_values.MconfUnwrapString(sensorGot)
+			sensorVal, ok := mconf_values.UnwrapString(sensorGot)
 			if !ok {
 				return fmt.Errorf("curve '%s' 'sensor' must be a string", name)
 			}
@@ -71,15 +70,13 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 				return nil, err
 			}
 		} else {
-			sensorsGot, ok := curveVal["sensors"]
-			if !ok {
+			sensors, exists, typeOk := mconf_values.ObjGetList(curveVal, "sensors")
+			if !exists {
 				return nil, fmt.Errorf("curve '%s' must have 'sensor' or 'sensors' attribute", name)
-			}
-			sensorsVal, ok := mconf_values.MconfUnwrapList(sensorsGot)
-			if !ok {
+			} else if !typeOk {
 				return nil, fmt.Errorf("curve '%s' 'sensors' must be a list", name)
 			}
-			for _, sensorGot := range sensorsVal {
+			for _, sensorGot := range sensors {
 				if err := processSensor(sensorGot); err != nil {
 					return nil, err
 				}
@@ -93,7 +90,7 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 		aggreggate := "avg"
 		aggregateGot, ok := curveVal["aggregate"]
 		if ok {
-			aggregateVal, ok := mconf_values.MconfUnwrapString(aggregateGot)
+			aggregateVal, ok := mconf_values.UnwrapString(aggregateGot)
 			if !ok {
 				return nil, fmt.Errorf("curve '%s' 'aggregate' must be a string", name)
 			}
@@ -116,7 +113,7 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 		if !ok {
 			return nil, fmt.Errorf("curve '%s' must have 'points' attribute", name)
 		}
-		pointsVal, ok := mconf_values.MconfUnwrapList(pointsGot)
+		pointsVal, ok := mconf_values.UnwrapList(pointsGot)
 		if !ok {
 			return nil, fmt.Errorf("curve '%s' 'points' must be a list", name)
 		}
@@ -124,7 +121,7 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 		points := make([]curve.CurvePoint, len(pointsVal))
 
 		for i, point := range pointsVal {
-			pointVal, ok := mconf_values.MconfUnwrapList(point)
+			pointVal, ok := mconf_values.UnwrapList(point)
 			if !ok {
 				return nil, fmt.Errorf("curve '%s' 'points' must be a list of lists", name)
 			}
@@ -136,17 +133,13 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 			tempGot := pointVal[0]
 			percentGot := pointVal[1]
 
-			tempVal, ok := mconf_values.MconfUnwrapFloat(tempGot)
-			temp := 0.0
+			temp, ok := mconf_values.UnwrapFloat(tempGot)
 			if !ok {
-				tempVal, ok := mconf_values.MconfUnwrapInt(tempGot)
+				tempInt, ok := mconf_values.UnwrapInt(tempGot)
 				if !ok {
 					return nil, fmt.Errorf("curve '%s' 'points' must be a list of lists of numbers", name)
 				}
-				tempInt := tempVal.Int64()
 				temp = float64(tempInt)
-			} else {
-				temp, _ = tempVal.Float64()
 			}
 
 			if temp < 0 {
@@ -157,17 +150,13 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 				return nil, fmt.Errorf("curve '%s' 'points' must be in ascending order", name)
 			}
 
-			percentVal, ok := mconf_values.MconfUnwrapFloat(percentGot)
-			percent := 0.0
+			percent, ok := mconf_values.UnwrapFloat(percentGot)
 			if !ok {
-				percentVal, ok := mconf_values.MconfUnwrapInt(percentGot)
+				percentInt, ok := mconf_values.UnwrapInt(percentGot)
 				if !ok {
 					return nil, fmt.Errorf("curve '%s' 'points' must be a list of lists of numbers", name)
 				}
-				percentInt := percentVal.Int64()
 				percent = float64(percentInt)
-			} else {
-				percent, _ = percentVal.Float64()
 			}
 
 			points[i] = curve.CurvePoint{
@@ -176,40 +165,32 @@ func GetCurves(config ConfigFile, sensors sensor.Sensors) (curve.Curves, error) 
 			}
 		}
 
-		hysteresisGot, ok := curveVal["hysteresis"]
-		hysteresis := 0.0
-		if ok {
-			hysteresisVal, ok := mconf_values.MconfUnwrapFloat(hysteresisGot)
+		hysteresis, exists, typeOk := mconf_values.ObjGetFloat(curveVal, "hysteresis")
+		if !exists {
 			hysteresis = 0.0
-			if !ok {
-				hysteresisVal, ok := mconf_values.MconfUnwrapInt(hysteresisGot)
-				if !ok {
-					return nil, fmt.Errorf("curve '%s' 'hysteresis' must be a float", name)
-				}
-				hysteresisInt := hysteresisVal.Int64()
-				hysteresis = float64(hysteresisInt)
-			} else {
-				hysteresis, _ = hysteresisVal.Float64()
+		} else if !typeOk {
+			hysteresisInt, _, typeOk := mconf_values.ObjGetInt(curveVal, "hysteresis")
+			if !typeOk {
+				return nil, fmt.Errorf("curve '%s' 'hysteresis' must be a float or int", name)
 			}
+			hysteresis = float64(hysteresisInt)
 
 			if hysteresis < 0 {
 				return nil, fmt.Errorf("curve '%s' 'hysteresis' must be >= 0", name)
 			}
 		}
 
-		periodGot, ok := curveVal["period"]
-		period := int64(1)
-
-		if ok {
-			readEveryVal, ok := mconf_values.MconfUnwrapInt(periodGot)
+		period, exists, typeOk := mconf_values.ObjGetInt(curveVal, "period")
+		if !exists {
 			period = 1
+		} else if !typeOk {
 			if !ok {
 				return nil, fmt.Errorf("curve '%s' 'readevery' must be an int", name)
 			}
-			period = readEveryVal.Int64()
-			if period < 1 {
-				return nil, fmt.Errorf("curve '%s' 'readevery' must be >= 1", name)
-			}
+		}
+
+		if period < 1 {
+			return nil, fmt.Errorf("curve '%s' 'readevery' must be >= 1", name)
 		}
 
 		curves[name] = &curve.Curve{

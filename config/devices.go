@@ -85,27 +85,29 @@ func resolveDeviceByPci(pci string) (string, error) {
 }
 
 func GetDevices(config ConfigFile) (device.Devices, error) {
-	devicesGot, ok := config["devices"]
-	if !ok {
+	devs, exists, typeOk := mconf_values.ObjGetObject(config, "devices")
+	if !exists {
 		return nil, fmt.Errorf("section 'devices' not found")
-	}
-	devicesVal, ok := mconf_values.MconfUnwrapObject(devicesGot)
-	if !ok {
+	} else if !typeOk {
 		return nil, fmt.Errorf("section 'devices' must be an object")
 	}
+
 	devices := make(device.Devices)
-	for devicePath, dev := range devicesVal {
-		deviceVal, ok := mconf_values.MconfUnwrapString(dev)
+	for devicePath, dev := range devs {
+		deviceVal, ok := mconf_values.UnwrapString(dev)
 		if !ok {
 			return nil, fmt.Errorf("device '%s' must be a string", devicePath)
 		}
+
 		deviceName := deviceVal
 		deviceType := strings.SplitN(devicePath, ":", 2)
 		if len(deviceType) != 2 {
 			return nil, fmt.Errorf("device '%s' must be in format <type>:<path>", devicePath)
 		}
+
 		devicePath := ""
 		deviceTypeBy := device.DeviceTypeByHwmonX
+
 		switch deviceType[0] {
 		case "hwmon":
 			deviceP, err := resolveDeviceByHwmonX(deviceType[1])

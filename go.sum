@@ -11,5 +11,9 @@ github.com/marzeq/mconf v1.2505.3 h1:2+fckEUD9e+GenCzl+725QT0H6CqZhO9/SlLKKy6imE
 github.com/marzeq/mconf v1.2505.3/go.mod h1:nJKg15RS0Hfjbs/7k+T644FHIOIvfMJFVieGUnp6sc0=
 github.com/marzeq/mconf v1.2505.4 h1:1itCK0mbmCxKbAG4ktFj0zXWKzhhVyT4kcN+SYf+wlQ=
 github.com/marzeq/mconf v1.2505.4/go.mod h1:nJKg15RS0Hfjbs/7k+T644FHIOIvfMJFVieGUnp6sc0=
+github.com/marzeq/mconf v1.2505.5 h1:b2pZSZLYhJ8YfQleQBXy5f3qsZKKTywLFc0xtmVKCms=
+github.com/marzeq/mconf v1.2505.5/go.mod h1:nJKg15RS0Hfjbs/7k+T644FHIOIvfMJFVieGUnp6sc0=
+github.com/marzeq/mconf v1.2505.6 h1:6CIQ3veoIaej2crlGRd80WKLTpgaeUSuVRx2itqDaf8=
+github.com/marzeq/mconf v1.2505.6/go.mod h1:nJKg15RS0Hfjbs/7k+T644FHIOIvfMJFVieGUnp6sc0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
