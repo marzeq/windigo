@@ -11,16 +11,18 @@ import (
 	"github.com/marzeq/windigo/daemon"
 )
 
+type args struct {
+	Daemon     bool              `arg:"-d,--daemon" help:"run as daemon"`
+	ConfigFile string            `arg:"-c,--config" help:"path to config file" default:"/etc/windigo/config.conf"`
+	Reload     bool              `arg:"-r,--reload" help:"reload config file"`
+	Constants  map[string]string `arg:"-C,--constants" help:"set constants in config file"`
+	Version    bool              `arg:"-v,--version" help:"print version and exit"`
+}
+
 func main() {
 	execName := filepath.Base(os.Args[0])
 
-	var args struct {
-		Daemon     bool   `arg:"-d,--daemon" help:"run as daemon"`
-		ConfigFile string `arg:"-c,--config" help:"path to config file" default:"/etc/windigo/config.conf"`
-		Reload     bool   `arg:"-r,--reload" help:"reload config file"`
-		Version    bool   `arg:"-v,--version" help:"print version and exit"`
-	}
-
+	var args args
 	arg.MustParse(&args)
 
 	if _, err := os.Stat(args.ConfigFile); err != nil {
@@ -42,10 +44,10 @@ func main() {
 	}
 
 	if execName == "windigod" || execName == "windigo-daemon" || args.Daemon {
-		os.Exit(daemon.RunDaemon(args.ConfigFile))
+		os.Exit(daemon.RunDaemon(args.ConfigFile, args.Constants))
 	} else if args.Reload {
-		os.Exit(cli.Reload())
+		os.Exit(cli.Reload(args.ConfigFile, args.Constants))
 	} else {
-		os.Exit(cli.RunCli(args.ConfigFile))
+		os.Exit(cli.RunCli(args.ConfigFile, args.Constants))
 	}
 }

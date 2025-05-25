@@ -21,8 +21,13 @@ type Config = struct {
 	Path    string
 }
 
-func ReadConfig(configFile string) (Config, error) {
-	config, _, err := mconf.ParseFromFile(configFile)
+func ReadConfig(configFile string, constants map[string]string) (Config, error) {
+	constantsMapped := make(map[string]mconf_values.MconfValue, len(constants))
+	for k, v := range constants {
+		constantsMapped[k] = &mconf_values.MconfString{Value: v}
+	}
+
+	config, _, err := mconf.ParseFromFile(configFile, constantsMapped)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to parse config file: %w", err)
 	}

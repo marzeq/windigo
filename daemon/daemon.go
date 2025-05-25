@@ -1,11 +1,14 @@
 package daemon
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -13,8 +16,8 @@ import (
 	"github.com/marzeq/windigo/config"
 )
 
-func RunDaemon(confFile string) int {
-	cfg, err := config.ReadConfig(confFile)
+func RunDaemon(confFile string, constants map[string]string) int {
+	cfg, err := config.ReadConfig(confFile, constants)
 	if err != nil {
 		log.Printf("%v", err)
 		return 1
@@ -69,17 +72,42 @@ func RunDaemon(confFile string) int {
 				continue
 			}
 			go func(c net.Conn) {
-				buf := make([]byte, 1024)
-				n, err := c.Read(buf)
+				var b bytes.Buffer
+				_, err := io.Copy(&b, c)
 				if err != nil {
 					log.Println("Socket read error:", err)
 					return
 				}
-				if string(buf[:n]) == "reload" {
+				input := b.String()
+				split := strings.Split(input, "!")
+				if len(split) < 1 {
+					log.Println("Invalid command format")
+				} else if split[0] == "reload" {
 					log.Println("Reloading config")
-					newCfg, err := config.ReadConfig(confFile)
+					cf := confFile
+					if len(split) > 1 {
+						cf = split[1]
+					}
+					csts := make(map[string]string)
+					if len(split) > 2 {
+						for _, kv := range split[2:] {
+							kvSplit := strings.SplitN(kv, "=", 2)
+							if len(kvSplit) == 2 {
+								csts[kvSplit[0]] = kvSplit[1]
+							} else {
+								log.Printf("Invalid constant format: %s", kv)
+								c.Write([]byte("ERROR: Invalid constant format\n"))
+								return
+							}
+						}
+					}
+					newCfg, err := config.ReadConfig(cf, csts)
 					if err != nil {
+						c.Write(fmt.Appendf(nil, "ERROR!%v\n", err))
 						log.Println("Error reloading config:", err)
+						if err := c.Close(); err != nil {
+							log.Println("Socket close error:", err)
+						}
 						return
 					}
 					cfg = newCfg
@@ -89,13 +117,16 @@ func RunDaemon(confFile string) int {
 							continue
 						}
 					}
-					log.Println("Config reloaded")
-					conn.Write([]byte("OK"))
+					if cf != common.DEFAULT_CONFIG {
+						log.Println("Reloaded using custom config file:", cf)
+					} else {
+						log.Println("Reloaded config")
+					}
+					c.Write([]byte("OK"))
 				} else {
-					log.Println("Unknown command:", string(buf[:n]))
+					log.Println("Unknown command:", input)
 				}
-
-				if err := conn.Close(); err != nil {
+				if err := c.Close(); err != nil {
 					log.Println("Socket close error:", err)
 				}
 			}(conn)

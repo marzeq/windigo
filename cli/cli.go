@@ -62,8 +62,8 @@ func printTable(headers []string, data [][]string) {
 	fmt.Println()
 }
 
-func RunCli(confFile string) int {
-	cfg, err := config.ReadConfig(confFile)
+func RunCli(confFile string, constants map[string]string) int {
+	cfg, err := config.ReadConfig(confFile, constants)
 	if err != nil {
 		fmt.Println(err)
 		return 1
@@ -110,18 +110,29 @@ func RunCli(confFile string) int {
 	return 0
 }
 
-func Reload() int {
+func Reload(confFile string, constants map[string]string) int {
 	conn, err := net.Dial("unix", common.SOCKFILE)
 	if err != nil {
 		fmt.Println("Error connecting to socket:", err)
 		return 1
 	}
 	defer conn.Close()
-	_, err = conn.Write([]byte("reload"))
+	message := "reload" + "!" + confFile
+
+	if len(constants) > 0 {
+		message += "!"
+		for k, v := range constants {
+			message += fmt.Sprintf("%s=%s\n", k, v)
+			message = message[:len(message)-1]
+		}
+	}
+
+	_, err = conn.Write([]byte(message))
 	if err != nil {
 		fmt.Println("Error writing to socket:", err)
 		return 1
 	}
+	conn.(*net.UnixConn).CloseWrite()
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
 	if err != nil {
@@ -129,7 +140,11 @@ func Reload() int {
 		return 1
 	}
 	if string(buf[:n]) != "OK" {
-		fmt.Println("Error reloading config")
+		if len(buf) > 6 && string(buf[:6]) == "ERROR!" {
+			fmt.Println("Error reloading config:", string(buf[6:n]))
+		} else {
+			fmt.Println("Error reloading config")
+		}
 		return 1
 	}
 	return 0
