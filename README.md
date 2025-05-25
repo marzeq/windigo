@@ -71,6 +71,36 @@ Then, analyse the output of `systemctl status windigod` to see if all went well 
 
 You can also peek at defined sensor temperatures and fan RPMs with the `windigo` command.
 
+### Hot reloading
+
+Use the `windigo` command to reload the configuration without restarting the service:
+
+```bash 
+wingigo --reload
+# or
+windigo -r
+```
+
+### Setting default constants from command line
+
+You can set default constants for the config file from the command line when starting the service/reloading it:
+
+```bash
+windigod -C some_constant=some_value
+# or when reloading
+windigo -r -C some_constant=some_value
+```
+
+One example that comes to mind is setting up a `$curve` constant like so:
+
+```mconf
+$curve = $curve ? your_curve
+# feature of mconf, where constants can have backup values. see more at https://github.com/marzeq/mconf#default-values
+```
+
+This way, `$curve` will take on the default value of `your_curve`, but you can override it. You can then do whatever you want with that newfound ability,
+like making a script that uses a differtent curve at night-time, or something like that.
+
 ## License
 
 [MIT](./LICENSE)
