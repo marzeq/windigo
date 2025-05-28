@@ -1,6 +1,6 @@
 package common
 
-const VERSION = "0.2.0"
+const VERSION = "0.2.1"
 
 const (
 	DEFAULT_CONFIG = "/etc/windigo/config.conf"
